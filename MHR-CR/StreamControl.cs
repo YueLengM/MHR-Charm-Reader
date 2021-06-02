@@ -1,6 +1,6 @@
 ﻿using OpenCvSharp;
 
-namespace mhr_ocr
+namespace MHR_CR
 {
     class StreamControl
     {

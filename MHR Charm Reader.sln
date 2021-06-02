@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31321.278
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mhr-ocr", "mhr-ocr\mhr-ocr.csproj", "{6D3D670C-E923-4A85-AB16-BB76A0BBE382}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MHR Charm Reader", "MHR-CR\MHR Charm Reader.csproj", "{6D3D670C-E923-4A85-AB16-BB76A0BBE382}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

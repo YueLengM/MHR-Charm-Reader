@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace mhr_ocr
+namespace MHR_CR
 {
     /// <summary>
     /// App.xaml 的交互逻辑

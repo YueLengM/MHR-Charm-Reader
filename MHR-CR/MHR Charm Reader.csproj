@@ -7,8 +7,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{6D3D670C-E923-4A85-AB16-BB76A0BBE382}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>mhr_ocr</RootNamespace>
-    <AssemblyName>mhr-ocr</AssemblyName>
+    <RootNamespace>MHR_CR</RootNamespace>
+    <AssemblyName>MHR_CR</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>

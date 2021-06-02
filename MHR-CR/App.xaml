@@ -1,7 +1,7 @@
-﻿<Application x:Class="mhr_ocr.App"
+﻿<Application x:Class="MHR_CR.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:mhr_ocr"
+             xmlns:local="clr-namespace:MHR_CR"
              StartupUri="mainWindow.xaml">
     <Application.Resources>
          

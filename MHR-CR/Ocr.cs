@@ -7,7 +7,7 @@ using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using Tesseract;
 
-namespace mhr_ocr
+namespace MHR_CR
 {
     class Ocr
     {

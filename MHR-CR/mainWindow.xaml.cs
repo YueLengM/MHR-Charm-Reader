@@ -9,7 +9,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 
 
-namespace mhr_ocr
+namespace MHR_CR
 {
     public partial class MainWindow : System.Windows.Window
     {

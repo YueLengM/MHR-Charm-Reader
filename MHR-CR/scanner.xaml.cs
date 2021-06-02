@@ -9,7 +9,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using Rectangle = System.Windows.Shapes.Rectangle;
 
-namespace mhr_ocr
+namespace MHR_CR
 {
     // 用于实现截图功能的窗口
     // 弃用
