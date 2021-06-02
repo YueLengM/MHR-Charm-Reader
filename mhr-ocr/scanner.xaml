@@ -1,0 +1,62 @@
+﻿<Window x:Class="mhr_ocr.Scanner" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:local="clr-namespace:mhr_ocr"
+        mc:Ignorable="d" Title="Scanner" Height="340" Width="310" Background="#00000000" Topmost="True"
+        WindowStyle="None" AllowsTransparency="True" WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
+        MinWidth="65" MinHeight="95" PreviewKeyDown="Resizeing_PreviewKeyDown">
+
+    <Window.Resources>
+        <Style x:Key="RectBorderStyle" TargetType="Rectangle">
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Fill" Value="#01000000" />
+            <Setter Property="Tag" Value="{Binding RelativeSource={RelativeSource AncestorType=Grid}}" />
+            <EventSetter Event="MouseLeftButtonDown" Handler="Resize_Init" />
+            <EventSetter Event="MouseLeftButtonUp" Handler="Resize_End" />
+            <EventSetter Event="MouseMove" Handler="Resizeing_Form" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid x:Name="ResizeGrid" Width="300" Height="300" Margin="5,5,0,0" HorizontalAlignment="Left"
+                VerticalAlignment="Top" MinWidth="55" MinHeight="55">
+            <Border x:Name="Rs_TopLeft" HorizontalAlignment="Left" Height="0" Margin="2,2,0,0" VerticalAlignment="Top"
+                    Width="0" />
+            <Border x:Name="Rs_BottomRight" HorizontalAlignment="Right" Height="0" Margin="0,0,2,2"
+                    VerticalAlignment="Bottom" Width="0" />
+            <Rectangle Stroke="#FF7DB9DE" StrokeThickness="1" StrokeDashArray="10 10" />
+            <Rectangle x:Name="Rs_Top" Cursor="SizeNS" VerticalAlignment="Top" Margin="5,-3,5,0" Height="8"
+                    Style="{StaticResource RectBorderStyle}" />
+            <Rectangle x:Name="Rs_Bottom" Cursor="SizeNS" VerticalAlignment="Bottom" Margin="5,0,5,-3" Height="8"
+                    Style="{StaticResource RectBorderStyle}" />
+            <Rectangle x:Name="Rs_Left" Cursor="SizeWE" HorizontalAlignment="Left" Margin="-3,5,0,5" Width="8"
+                    Style="{StaticResource RectBorderStyle}" />
+            <Rectangle x:Name="Rs_Right" Cursor="SizeWE" HorizontalAlignment="Right" Margin="0,5,-3,5" Width="8"
+                    Style="{StaticResource RectBorderStyle}" />
+            <Border x:Name="Magnifier_Border" BorderBrush="#FF7DB9DE" BorderThickness="1" Height="101" Width="101"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Hidden">
+                <Image x:Name="Magnifier" Height="101" Width="101" Stretch="UniformToFill"
+                        RenderOptions.BitmapScalingMode="NearestNeighbor" />
+            </Border>
+
+        </Grid>
+        <Grid VerticalAlignment="Bottom" Height="35">
+            <Button HorizontalAlignment="Right" Margin="5" Width="25" Height="25" VerticalAlignment="Bottom"
+                    Opacity="0.1" MouseEnter="Function_Button_MouseEnter" MouseLeave="Function_Button_MouseLeave"
+                    Click="Close_Button_Click">
+                <Path Fill="#FFF44336"
+                        Data="M14.894182,10.8 L21.034841,4.6593409 C21.788386,3.9057955 21.788386,2.6840455 21.034841,1.9298864 L19.670114,0.56515909 C18.916568,-0.18838636 17.694818,-0.18838636 16.940659,0.56515909 L10.8,6.7058182 4.6593409,0.56515909 C3.9057955,-0.18838636 2.6840455,-0.18838636 1.9298864,0.56515909 L0.56515909,1.9298864 C-0.18838637,2.6834318 -0.18838637,3.9051818 0.56515909,4.6593409 L6.7058182,10.8 0.56515909,16.940659 C-0.18838637,17.694205 -0.18838637,18.915955 0.56515909,19.670114 L1.9298864,21.034841 C2.6834318,21.788386 3.9057955,21.788386 4.6593409,21.034841 L10.8,14.894182 16.940659,21.034841 C17.694205,21.788386 18.916568,21.788386 19.670114,21.034841 L21.034841,19.670114 C21.788386,18.916568 21.788386,17.694818 21.034841,16.940659 L14.894182,10.8 z"
+                        Stretch="Fill" Margin="2" />
+            </Button>
+            <Button HorizontalAlignment="Right" Margin="5,5,35,5" Width="25" Height="25" VerticalAlignment="Bottom"
+                    Opacity="0.1" MouseEnter="Function_Button_MouseEnter" MouseLeave="Function_Button_MouseLeave"
+                    PreviewMouseLeftButtonDown="Move_Button_MouseLeftButtonDown">
+                <Path Fill="#FF03A9F4"
+                        Data="M352.201,425.775L273.005,504.971C263.632,514.344,248.437,514.344,239.064,504.971L159.868,425.775C144.749,410.656,155.457,384.804,176.839,384.805L228.001,384.805 228,284 127.196,284 127.196,335.162C127.196,356.544,101.345,367.252,86.225,352.133L7.029,272.937C-2.344,263.564,-2.344,248.368,7.029,238.996L86.225,159.8C101.344,144.681,127.196,155.389,127.196,176.771L127.196,228 228,228 228,127.196 176.77,127.196C155.388,127.196,144.68,101.345,159.799,86.225L238.995,7.029C248.368,-2.344,263.563,-2.344,272.936,7.029L352.132,86.225C367.251,101.344,356.543,127.196,335.161,127.196L283.999,127.196 283.999,228 384.803,228 384.803,176.838C384.803,155.456,410.654,144.748,425.773,159.867L504.969,239.063C514.342,248.436,514.342,263.632,504.969,273.004L425.773,352.2C410.654,367.319,384.802,356.611,384.803,335.229L384.803,284 284,284 284,384.804 335.23,384.804C356.612,384.804,367.32,410.655,352.201,425.775z"
+                        Stretch="Fill" Margin="2" />
+            </Button>
+        </Grid>
+
+
+    </Grid>
+</Window>
