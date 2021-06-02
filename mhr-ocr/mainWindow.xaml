@@ -2,9 +2,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:local="clr-namespace:mhr_ocr"
-        mc:Ignorable="d" Title="MHR OCR" Background="#FFF8F8F8" Height="533" Width="280.1">
-    <Grid Margin="0" Height="503">
+        mc:Ignorable="d" Title="MHR OCR" Background="#FFF8F8F8" Width="300" Topmost="True"
+        SourceInitialized="Window_SourceInitialized" Closed="Window_Closed" ResizeMode="CanMinimize"
+        Height="330">
+    <Grid Margin="0" VerticalAlignment="Top">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition />
@@ -33,14 +36,53 @@
             </Button>
         </Grid>
         <Grid Margin="10" Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <Button Content="扫描" Margin="10" VerticalAlignment="Top" Width="75" Height="30" Click="Scan" Grid.Column="1" />
-            <Button Content="调试" Margin="10" VerticalAlignment="Top" />
+            <Button Margin="10,0" VerticalAlignment="Top" Click="Scan" Grid.Column="1">
+                <Grid Margin="0,5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Path Fill="#FF495057"
+                            Data="M336 64h-80c0-35.3-28.7-64-64-64s-64 28.7-64 64H48C21.5 64 0 85.5 0 112v352c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48zM96 424c-13.3 0-24-10.7-24-24s10.7-24 24-24 24 10.7 24 24-10.7 24-24 24zm0-96c-13.3 0-24-10.7-24-24s10.7-24 24-24 24 10.7 24 24-10.7 24-24 24zm0-96c-13.3 0-24-10.7-24-24s10.7-24 24-24 24 10.7 24 24-10.7 24-24 24zm96-192c13.3 0 24 10.7 24 24s-10.7 24-24 24-24-10.7-24-24 10.7-24 24-24zm128 368c0 4.4-3.6 8-8 8H168c-4.4 0-8-3.6-8-8v-16c0-4.4 3.6-8 8-8h144c4.4 0 8 3.6 8 8v16zm0-96c0 4.4-3.6 8-8 8H168c-4.4 0-8-3.6-8-8v-16c0-4.4 3.6-8 8-8h144c4.4 0 8 3.6 8 8v16zm0-96c0 4.4-3.6 8-8 8H168c-4.4 0-8-3.6-8-8v-16c0-4.4 3.6-8 8-8h144c4.4 0 8 3.6 8 8v16z"
+                            Stretch="Uniform" Grid.RowSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center"
+                            Height="50" Margin="0,0,20,0" />
+                    <Label Content="捕获" HorizontalAlignment="Center" Grid.Column="1" VerticalAlignment="Center"
+                            FontSize="24" />
+                    <Label Content="Ctrl+NumPad0" Grid.Row="1" HorizontalAlignment="Center" Grid.Column="1"
+                            VerticalAlignment="Center" FontSize="10" />
+                </Grid>
+            </Button>
         </Grid>
-        <Label x:Name="Result" Content="Result" HorizontalAlignment="Left" Margin="61,4.2,0,0" VerticalAlignment="Top"
-                Grid.Row="2" />
+
+        <CheckBox Content="自动复制到剪贴板" HorizontalAlignment="Center" Margin="10" Grid.Row="2"
+                VerticalAlignment="Center" IsChecked="True" />
+        <Grid Margin="10" Grid.Row="3" VerticalAlignment="Top">
+            <Grid Margin="0" Grid.Row="3" VerticalAlignment="Top" HorizontalAlignment="Center">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox HorizontalAlignment="Left" Margin="10,0,0,0" TextWrapping="Wrap" VerticalAlignment="Top"
+                        Width="125" AcceptsReturn="True" Text="" Grid.Column="1" Grid.RowSpan="6" Height="92.8" />
+                <Label Content="RARE" Margin="0" Padding="0" HorizontalAlignment="Right" />
+                <Label Content="孔位" Margin="0" Padding="0" HorizontalAlignment="Right" Grid.Row="1" />
+                <Label Content="技能 1" Margin="0" Padding="0" HorizontalAlignment="Right" Grid.Row="2" />
+                <Label Content="等级 1" Margin="0" Padding="0" HorizontalAlignment="Right" Grid.Row="3" />
+                <Label Content="技能 2" Margin="0" Padding="0" HorizontalAlignment="Right" Grid.Row="4" />
+                <Label Content="等级 2" Margin="0" Padding="0" HorizontalAlignment="Right" Grid.Row="5" />
+            </Grid>
+        </Grid>
     </Grid>
 </Window>

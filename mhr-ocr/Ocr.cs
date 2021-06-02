@@ -1,9 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using Tesseract;
@@ -12,7 +11,9 @@ namespace mhr_ocr
 {
     class Ocr
     {
+        private TextHelper textHelper = new TextHelper();
         private Mat _m;
+        private Mat _croped;
         public Dictionary<string, string> res = new Dictionary<string, string>
         {
             ["rare"] = "0",
@@ -23,61 +24,107 @@ namespace mhr_ocr
             ["l2"] = "",
         };
 
-        public Ocr(Bitmap bitmap)
+        public void Proc(Mat m)
         {
-            _m = BitmapConverter.ToMat(bitmap);
+            _m = m;
             Proc();
         }
 
-        public Ocr(string path)
+        public void Proc(Bitmap img)
+        {
+            _m = BitmapConverter.ToMat(img);
+            Proc();
+        }
+
+        public void Proc(string path)
         {
             _m = new Mat(path);
             Proc();
+        }
+
+        private bool IsArmorPage()
+        {
+            Mat background = new Mat(_m, new OpenCvSharp.Rect(980, 200, 100, 100));
+            Cv2.MeanStdDev(background, out Scalar mean, out Scalar std);
+            if (mean.Val0 < 10 && std.Val0 < 10)
+            {
+                return true;
+            }
+            return false;
         }
 
         private void Proc()
         {
             Cv2.CvtColor(_m, _m, ColorConversionCodes.BGR2GRAY);
 
-            int width = _m.Width;
-            Cv2.Resize(_m, _m, new OpenCvSharp.Size(0, 0), 480.0 / width, 480.0 / width, InterpolationFlags.Cubic);
-            if (_m.Height < 320 + 48)
+            bool armorPage = IsArmorPage();
+            if (armorPage)
             {
-                Cv2.CopyMakeBorder(_m, _m, 0, 320 + 48 - _m.Height, 0, 0, BorderTypes.Constant, 0);
+                _croped = new Mat(_m, new OpenCvSharp.Rect(1521, 268, 356, 279));
             }
-            //Cv2.ImShow("resized", _m);
+            else
+            {
+                _croped = new Mat(_m, new OpenCvSharp.Rect(1127, 286, 356, 279));
+            }
 
-            Mat rare = 255 - new Mat(_m, new OpenCvSharp.Rect(480 - 130, 0, 125, 48));
-            Cv2.Threshold(rare, rare, 200, 255, ThresholdTypes.Otsu);
-            Mat slot = new Mat(_m, new OpenCvSharp.Rect(480 - 174, 48, 174, 48));
-            Mat skill1 = 255 - new Mat(_m, new OpenCvSharp.Rect(44, 170, 320, 48));
-            Mat level1 = 255 - new Mat(_m, new OpenCvSharp.Rect(480 - 110, 220, 105, 48));
-            Cv2.Threshold(level1, level1, 200, 255, ThresholdTypes.Otsu);
-            Mat skill2 = 255 - new Mat(_m, new OpenCvSharp.Rect(44, 270, 320, 48));
-            Mat level2 = 255 - new Mat(_m, new OpenCvSharp.Rect(480 - 110, 320, 105, 48));
-            Cv2.Threshold(level2, level2, 200, 255, ThresholdTypes.Otsu);
+            Anlys();
+        }
 
-            Cv2.ImShow("rare", rare);
+        private void Anlys()
+        {
+            Mat rare = 255 - new Mat(_croped, new OpenCvSharp.Rect(266, 0, 356 - 266, 32));
+            Cv2.CopyMakeBorder(rare, rare, 5, 5, 5, 5, BorderTypes.Replicate);
+
+            Mat slot = new Mat(_croped, new OpenCvSharp.Rect(228, 35, 42 * 3, 70 - 35));
+
+            Mat skill1 = 255 - new Mat(_croped, new OpenCvSharp.Rect(30, 130, 220, 32));
+            Cv2.CopyMakeBorder(skill1, skill1, 5, 5, 5, 5, BorderTypes.Replicate);
+            Mat level1 = 255 - new Mat(_croped, new OpenCvSharp.Rect(285, 168, 356 - 285, 32));
+            Cv2.CopyMakeBorder(level1, level1, 5, 5, 5, 5, BorderTypes.Replicate);
+
+            Mat skill2 = 255 - new Mat(_croped, new OpenCvSharp.Rect(30, 207, 220, 32));
+            Cv2.CopyMakeBorder(skill2, skill2, 5, 5, 5, 5, BorderTypes.Replicate);
+            Mat level2 = 255 - new Mat(_croped, new OpenCvSharp.Rect(285, 245, 356 - 285, 32));
+            Cv2.CopyMakeBorder(level2, level2, 5, 5, 5, 5, BorderTypes.Replicate);
+
+            Cv2.MinMaxIdx(skill2, out double m2, out _);
+
+            if (m2 > 180)
+            {
+                res["rare"] = textHelper.LevelCorr(ApplyOcr(BitmapConverter.ToBitmap(rare), "en"));
+                res["slot"] = Proc_Slot(slot);
+                res["s1"] = textHelper.SkillCorr(ApplyOcr(BitmapConverter.ToBitmap(skill1), "ch"));
+                res["l1"] = textHelper.LevelCorr(ApplyOcr(BitmapConverter.ToBitmap(level1), "en"));
+            }
+            else
+            {
+                res["rare"] = textHelper.LevelCorr(ApplyOcr(BitmapConverter.ToBitmap(rare), "en"));
+                res["slot"] = Proc_Slot(slot);
+                res["s1"] = textHelper.SkillCorr(ApplyOcr(BitmapConverter.ToBitmap(skill1), "ch"));
+                res["l1"] = textHelper.LevelCorr(ApplyOcr(BitmapConverter.ToBitmap(level1), "en"));
+                res["s2"] = textHelper.SkillCorr(ApplyOcr(BitmapConverter.ToBitmap(skill2), "ch"));
+                res["l2"] = textHelper.LevelCorr(ApplyOcr(BitmapConverter.ToBitmap(level2), "en"));
+            }
+
+            //Cv2.ImShow("rare", rare);
             //Cv2.ImShow("slot", slot);
-            Cv2.ImShow("s1", skill1);
-            Cv2.ImShow("l1", level1);
-            Cv2.ImShow("s2", skill2);
-            Cv2.ImShow("l2", level2);
+            //Cv2.ImShow("s1", skill1);
+            //Cv2.ImShow("l1", level1);
+            //Cv2.ImShow("s2", skill2);
+            //Cv2.ImShow("l2", level2);
 
-
-            res["rare"] = Start_Ocr(BitmapConverter.ToBitmap(rare), "en");
-            res["slot"] = Proc_Slot(slot);
-            res["s1"] = Start_Ocr(BitmapConverter.ToBitmap(skill1), "ch");
-            res["l1"] = Start_Ocr(BitmapConverter.ToBitmap(level1), "en");
-            res["s2"] = Start_Ocr(BitmapConverter.ToBitmap(skill2), "ch");
-            res["l2"] = Start_Ocr(BitmapConverter.ToBitmap(level2), "en");
+            foreach (KeyValuePair<string, string> item in res)
+            {
+                Console.WriteLine(item);
+            }
         }
 
         private string Proc_Slot(Mat slot)
         {
-            Mat slot1 = new Mat(slot, new OpenCvSharp.Rect(0, 0, 60, 48));
-            Mat slot2 = new Mat(slot, new OpenCvSharp.Rect(60, 0, 54, 48));
-            Mat slot3 = new Mat(slot, new OpenCvSharp.Rect(114, 0, 54, 48));
+            int h = slot.Height;
+            Mat slot1 = new Mat(slot, new OpenCvSharp.Rect(42 * 0, 0, 42, h));
+            Mat slot2 = new Mat(slot, new OpenCvSharp.Rect(42 * 1, 0, 42, h));
+            Mat slot3 = new Mat(slot, new OpenCvSharp.Rect(42 * 2, 0, 42, h));
 
             Cv2.Threshold(slot1, slot1, 80, 255, ThresholdTypes.Binary);
             Cv2.Threshold(slot2, slot2, 80, 255, ThresholdTypes.Binary);
@@ -86,13 +133,10 @@ namespace mhr_ocr
             //Cv2.ImShow("slot1", slot1);
             //Cv2.ImShow("slot2", slot2);
             //Cv2.ImShow("slot3", slot3);
-            //Console.WriteLine("1 " + Cv2.Sum(slot1)[0]);
-            //Console.WriteLine("2 " + Cv2.Sum(slot2)[0]);
-            //Console.WriteLine("3 " + Cv2.Sum(slot3)[0]);
 
-            double s1 = Cv2.Sum(slot1)[0];
-            double s2 = Cv2.Sum(slot2)[0];
-            double s3 = Cv2.Sum(slot3)[0];
+            int s1 = (int)Cv2.Sum(slot1)[0];
+            int s2 = (int)Cv2.Sum(slot2)[0];
+            int s3 = (int)Cv2.Sum(slot3)[0];
 
             int ss1 = Sub_Slot(s1);
             if (ss1 == 0)
@@ -109,28 +153,35 @@ namespace mhr_ocr
             return "" + ss1 + ss2 + ss3;
         }
 
-        private int Sub_Slot(double sum)
+        private int Sub_Slot(int sum)
         {
-            if (sum > 300000)
-            {
-                return 1;
-            }
-            else if (sum > 260000)
-            {
-                return 2;
-            }
-            else if (sum < 100000)
+            sum /= 10000;
+            if (sum < 10)
             {
                 return 0;
             }
-            else
+
+            int d1 = Math.Abs(sum - 21);
+            int d2 = Math.Abs(sum - 16);
+            int d3 = Math.Abs(sum - 13);
+
+            if (d1 < d2)
             {
+                if (d1 < d3)
+                {
+                    return 1;
+                }
                 return 3;
             }
+            if (d2 < d3)
+            {
+                return 2;
+            }
+            return 3;
         }
 
 
-        private string Start_Ocr(Bitmap image, string lang = "ch")
+        private string ApplyOcr(Bitmap image, string lang = "ch")
         {
             TesseractEngine engine;
             switch (lang)
@@ -142,14 +193,74 @@ namespace mhr_ocr
                 case "ch":
                 default:
                     engine = new TesseractEngine("tessdata", "chi_sim", EngineMode.LstmOnly);
-                    engine.SetVariable("tessedit_char_whitelist", "耐力急速回复跳跃铁人跑者翔虫使墙面移动体术地质学植生学滑走强化饥饿耐性剥取铁人剥取名人幸运捕获名人快吃体力回复量提升道具使用强化最爱蘑菇满足感广域化炸弹客泡沫之舞回避性能回避距离提升飞身跃入防御性能防御强化精灵加护纳刀术减轻胆怯回复速度耳塞风压耐性耐震昏厥耐性麻痹耐性毒耐性睡眠耐性泥雪耐性爆破异常状态的耐性属性异常状态的耐性鬼火缠攻击防御火耐性水耐性冰耐性雷耐性龙耐性火属性攻击强化水属性攻击强化冰属性攻击强化雷属性攻击强化龙属性攻击强化毒属性强化爆破属性强化睡眠属性强化麻痹属性强化击晕术破坏王夺取耐力骑乘名人佯动看破弱点特效精神抖擞拔刀术【技】拔刀术【力】超会心会心击【属性】攻击守势火场怪力龙气活性怨恨逆袭死里逃生不屈无伤力量解放挑战者钝器能手集中强化持续炮术匠利刃达人艺心眼砥石使用高速化刚刃打磨高速变形炮弹装填吹笛名人通常弹・连射箭强化散弹・扩散箭强化贯穿弹・贯穿箭强化弹丸节约弹道强化特殊射击强化减轻后坐力装填速度装填扩充抑制偏移速射强化解放弓的蓄力阶段雷纹一致风纹一致霞皮的恩惠钢壳的恩惠炎鳞的恩惠风雷合一");
-                    engine.SetVariable("lstm_choice_mode", "2");
+                    engine.SetVariable("tessedit_char_whitelist", textHelper.GetSkillUniqueChar());
                     break;
             }
             engine.DefaultPageSegMode = PageSegMode.SingleLine;
             Pix img = PixConverter.ToPix(image);
             Page page = engine.Process(img);
-            return page.GetText();
+            return page.GetText().Trim();
+        }
+    }
+
+    class TextHelper
+    {
+        // [...document.getElementsByTagName('select')[0].getElementsByTagName('option')].slice(1,-3).map(e=>e.textContent).join('\n');
+        private string unique;
+        private List<string> skillList = new List<string>();
+        private HashSet<string> skillSet;
+        private SymSpell symSpell = new SymSpell();
+
+        public TextHelper(string path = "./Skills.txt")
+        {
+            HashSet<char> set = new HashSet<char>();
+
+            using (StreamReader sr = new StreamReader(path))
+            {
+                string line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    line = line.Trim();
+                    skillList.Add(line);
+                    symSpell.CreateDictionaryEntry(line, 1);
+                    foreach (char item in line)
+                    {
+                        set.Add(item);
+                    }
+                }
+            }
+
+            skillSet = new HashSet<string>(skillList);
+            unique = string.Join("", set.ToArray());
+        }
+
+        public string GetSkillUniqueChar()
+        {
+            return unique;
+        }
+
+        public string SkillCorr(string s)
+        {
+            if (skillSet.Contains(s))
+            {
+                return s;
+            }
+            var sug = symSpell.Lookup(s, SymSpell.Verbosity.Closest);
+            if (sug.Count > 0)
+            {
+                return sug[0].term;
+            }
+            return s;
+        }
+
+        public string LevelCorr(string s)
+        {
+            char last = s[s.Length - 1];
+            if (last > '0' && last <= '9')
+            {
+                return last.ToString();
+            }
+            return "1";
         }
     }
 }
