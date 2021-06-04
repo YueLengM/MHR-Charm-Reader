@@ -2,6 +2,9 @@
 
 适用于采集卡用户的护石读取器
 
+![image](https://user-images.githubusercontent.com/11801894/120824066-a6d3f700-c58a-11eb-9856-b02a71cc4b38.png)
+
+
 # 需求
 
 ### 环境
