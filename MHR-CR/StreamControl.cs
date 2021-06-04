@@ -49,7 +49,7 @@ namespace MHR_CR
 
         public Mat GetMat()
         {
-            Mat frame = new Mat(360, 640, MatType.CV_8UC1);
+            Mat frame = new Mat();
 
             TestInit();
 
@@ -57,11 +57,14 @@ namespace MHR_CR
             {
                 capture.Read(frame);
                 capture.Read(frame);
+                capture.Release();
             }
             else
             {
+                frame = new Mat(360, 640, MatType.CV_8UC1);
                 Cv2.PutText(frame, "Error: Failed to open camera", new Point(0, 128), HersheyFonts.HersheyDuplex, 1, Scalar.White);
             }
+            
             return frame;
         }
 

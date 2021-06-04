@@ -12,6 +12,11 @@ namespace MHR_CR
     class Ocr
     {
         private TextHelper textHelper = new TextHelper();
+
+        private string rareWhitelist = "RARE1234567";
+        private string skillWhitelist;
+        private string levelWhitelist = "Lv123456";
+
         private Mat _m;
         private Mat _croped;
         public Dictionary<string, string> res = new Dictionary<string, string>
@@ -23,6 +28,11 @@ namespace MHR_CR
             ["s2"] = "",
             ["l2"] = "",
         };
+
+        public Ocr()
+        {
+            skillWhitelist = textHelper.GetSkillUniqueChar();
+        }
 
         public void Proc(Mat m)
         {
@@ -44,13 +54,15 @@ namespace MHR_CR
 
         private bool IsArmorPage()
         {
-            Mat background = new Mat(_m, new OpenCvSharp.Rect(980, 200, 100, 100));
-            Cv2.MeanStdDev(background, out Scalar mean, out Scalar std);
-            if (mean.Val0 < 10 && std.Val0 < 10)
+            using (Mat background = new Mat(_m, new OpenCvSharp.Rect(980, 200, 100, 100)))
             {
-                return true;
+                Cv2.MeanStdDev(background, out Scalar mean, out Scalar std);
+                if (mean.Val0 < 10 && std.Val0 < 10)
+                {
+                    return true;
+                }
+                return false;
             }
-            return false;
         }
 
         private void Proc()
@@ -67,6 +79,7 @@ namespace MHR_CR
                 _croped = new Mat(_m, new OpenCvSharp.Rect(1127, 286, 356, 279));
             }
 
+            _m.Dispose();
             Anlys();
         }
 
@@ -87,23 +100,39 @@ namespace MHR_CR
             Mat level2 = 255 - new Mat(_croped, new OpenCvSharp.Rect(285, 245, 356 - 285, 32));
             Cv2.CopyMakeBorder(level2, level2, 5, 5, 5, 5, BorderTypes.Replicate);
 
+            _croped.Dispose();
+
             Cv2.MinMaxIdx(skill2, out double m2, out _);
 
             if (m2 > 180)
             {
-                res["rare"] = textHelper.LevelCorr(ApplyOcr(BitmapConverter.ToBitmap(rare), "en"));
+                res["rare"] = textHelper.LevelCorr(ApplyOcr(BitmapConverter.ToBitmap(rare), "en", rareWhitelist));
+                rare.Dispose();
                 res["slot"] = Proc_Slot(slot);
-                res["s1"] = textHelper.SkillCorr(ApplyOcr(BitmapConverter.ToBitmap(skill1), "ch"));
-                res["l1"] = textHelper.LevelCorr(ApplyOcr(BitmapConverter.ToBitmap(level1), "en"));
+                slot.Dispose();
+                res["s1"] = textHelper.SkillCorr(ApplyOcr(BitmapConverter.ToBitmap(skill1), "ch", skillWhitelist));
+                skill1.Dispose();
+                res["l1"] = textHelper.LevelCorr(ApplyOcr(BitmapConverter.ToBitmap(level1), "en", levelWhitelist));
+                level1.Dispose();
+                res["s2"] = "";
+                skill2.Dispose();
+                res["l2"] = "";
+                level2.Dispose();
             }
             else
             {
-                res["rare"] = textHelper.LevelCorr(ApplyOcr(BitmapConverter.ToBitmap(rare), "en"));
+                res["rare"] = textHelper.LevelCorr(ApplyOcr(BitmapConverter.ToBitmap(rare), "en", rareWhitelist));
+                rare.Dispose();
                 res["slot"] = Proc_Slot(slot);
-                res["s1"] = textHelper.SkillCorr(ApplyOcr(BitmapConverter.ToBitmap(skill1), "ch"));
-                res["l1"] = textHelper.LevelCorr(ApplyOcr(BitmapConverter.ToBitmap(level1), "en"));
-                res["s2"] = textHelper.SkillCorr(ApplyOcr(BitmapConverter.ToBitmap(skill2), "ch"));
-                res["l2"] = textHelper.LevelCorr(ApplyOcr(BitmapConverter.ToBitmap(level2), "en"));
+                slot.Dispose();
+                res["s1"] = textHelper.SkillCorr(ApplyOcr(BitmapConverter.ToBitmap(skill1), "ch", skillWhitelist));
+                skill1.Dispose();
+                res["l1"] = textHelper.LevelCorr(ApplyOcr(BitmapConverter.ToBitmap(level1), "en", levelWhitelist));
+                level1.Dispose();
+                res["s2"] = textHelper.SkillCorr(ApplyOcr(BitmapConverter.ToBitmap(skill2), "ch", skillWhitelist));
+                skill2.Dispose();
+                res["l2"] = textHelper.LevelCorr(ApplyOcr(BitmapConverter.ToBitmap(level2), "en", levelWhitelist));
+                level2.Dispose();
             }
 
             //Cv2.ImShow("rare", rare);
@@ -113,10 +142,10 @@ namespace MHR_CR
             //Cv2.ImShow("s2", skill2);
             //Cv2.ImShow("l2", level2);
 
-            foreach (KeyValuePair<string, string> item in res)
-            {
-                Console.WriteLine(item);
-            }
+            //foreach (KeyValuePair<string, string> item in res)
+            //{
+            //    Console.WriteLine(item);
+            //}
         }
 
         private string Proc_Slot(Mat slot)
@@ -137,6 +166,10 @@ namespace MHR_CR
             int s1 = (int)Cv2.Sum(slot1)[0];
             int s2 = (int)Cv2.Sum(slot2)[0];
             int s3 = (int)Cv2.Sum(slot3)[0];
+
+            slot1.Dispose();
+            slot2.Dispose();
+            slot3.Dispose();
 
             int ss1 = Sub_Slot(s1);
             if (ss1 == 0)
@@ -181,21 +214,20 @@ namespace MHR_CR
         }
 
 
-        private string ApplyOcr(Bitmap image, string lang = "ch")
+        private string ApplyOcr(Bitmap image, string lang, string whitelist)
         {
             TesseractEngine engine;
             switch (lang)
             {
                 case "en":
                     engine = new TesseractEngine("tessdata", "eng", EngineMode.LstmOnly);
-                    engine.SetVariable("tessedit_char_whitelist", "RARELv1234567");
                     break;
                 case "ch":
                 default:
                     engine = new TesseractEngine("tessdata", "chi_sim", EngineMode.LstmOnly);
-                    engine.SetVariable("tessedit_char_whitelist", textHelper.GetSkillUniqueChar());
                     break;
             }
+            engine.SetVariable("tessedit_char_whitelist", whitelist);
             engine.DefaultPageSegMode = PageSegMode.SingleLine;
             Pix img = PixConverter.ToPix(image);
             Page page = engine.Process(img);
@@ -245,7 +277,7 @@ namespace MHR_CR
             {
                 return s;
             }
-            var sug = symSpell.Lookup(s, SymSpell.Verbosity.Closest);
+            List<SymSpell.SuggestItem> sug = symSpell.Lookup(s, SymSpell.Verbosity.Closest);
             if (sug.Count > 0)
             {
                 return sug[0].term;

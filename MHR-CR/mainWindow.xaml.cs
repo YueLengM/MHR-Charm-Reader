@@ -33,19 +33,6 @@ namespace MHR_CR
             return cameraNames;
         }
 
-        private void Scan(object sender, RoutedEventArgs e)
-        {
-            Scan();
-        }
-
-        private void Scan()
-        {
-            Mat m = streamControl.GetMat();
-            ocr.Proc(m);
-
-            //Clipboard.SetText("9\t10");
-        }
-
         public void RefreshInput()
         {
             InputComboBox.ItemsSource = GetCameraNameList();
@@ -67,6 +54,37 @@ namespace MHR_CR
             streamControl.SetId(InputComboBox.SelectedIndex);
         }
 
+        private void Scan(object sender, RoutedEventArgs e)
+        {
+            Scan();
+        }
+        private void Scan()
+        {
+            using (Mat m = streamControl.GetMat())
+            {
+                ocr.Proc(m);
+            }
+            ResultTextBox.Text = string.Join("\n", ocr.res.Values);
+            if (AutoCopy.IsChecked == true)
+            {
+                Dictionary<string, string> tRes = new Dictionary<string, string>(ocr.res)
+                {
+                    ["slot"] = string.Join("\t", ocr.res["slot"].ToCharArray()).Replace("\t0", "\t")
+                };
+                Clipboard.SetText(string.Join("\t", tRes.Values));
+            }
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+
+        private void Copy_Button_Click(object sender, RoutedEventArgs e)
+        {
+            string[] t = ResultTextBox.Text.Split('\n');
+            t[1] = string.Join("\t", t[1].ToCharArray()).Replace("\t0", "\t");
+            Clipboard.SetText(string.Join("\t", t));
+        }
+
         [DllImport("User32.dll")]
         private static extern bool RegisterHotKey([In] IntPtr hWnd, [In] int id, [In] uint fsModifiers, [In] uint vk);
 
@@ -78,8 +96,7 @@ namespace MHR_CR
 
         private void Window_SourceInitialized(object sender, EventArgs e)
         {
-            //base.OnSourceInitialized(e);
-            var helper = new WindowInteropHelper(this);
+            WindowInteropHelper helper = new WindowInteropHelper(this);
             _source = HwndSource.FromHwnd(helper.Handle);
             _source.AddHook(HwndHook);
             RegisterHotKey();
@@ -94,7 +111,8 @@ namespace MHR_CR
 
         private void RegisterHotKey()
         {
-            var helper = new WindowInteropHelper(this);
+            WindowInteropHelper helper = new WindowInteropHelper(this);
+            //const uint MOD_ALT = 0x0001;
             const uint MOD_CTRL = 0x0002;
             if (!RegisterHotKey(helper.Handle, HOTKEY_ID, MOD_CTRL, (uint)KeyInterop.VirtualKeyFromKey(Key.NumPad0)))
             {
@@ -104,7 +122,7 @@ namespace MHR_CR
 
         private void UnregisterHotKey()
         {
-            var helper = new WindowInteropHelper(this);
+            WindowInteropHelper helper = new WindowInteropHelper(this);
             UnregisterHotKey(helper.Handle, HOTKEY_ID);
         }
 
